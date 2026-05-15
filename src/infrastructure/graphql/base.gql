@@ -1,0 +1,27 @@
+# TODO: delete this Book stuff.
+type Book {
+  id: ID!
+  title: String!
+}
+
+type Query {
+  # iam: IamQueries!
+  books: [Book!]!
+}
+
+type Mutation {
+  _empty: String
+}
+
+input PaginationInput {
+  page: Int = 1
+  perPage: Int = 20
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  totalCount: Int!
+  page: Int!
+  perPage: Int!
+}
