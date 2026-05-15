@@ -1,0 +1,252 @@
+# Architecture hexagonale & DDD — bolto-core
+
+## Principe fondamental
+
+Les dépendances pointent **toujours vers le centre**. Le domaine ne sait pas que Prisma, GraphQL ou Bun existent.
+
+```
+infrastructure → application → domain
+```
+
+---
+
+## Les 3 couches
+
+| Couche | Rôle | Peut importer |
+|---|---|---|
+| `domain/` | Règles métier pures. Entités, value objects, ports. | Rien (TypeScript vanilla uniquement) |
+| `application/` | Orchestration. Use-cases. | `domain/` uniquement |
+| `infrastructure/` | Technologie. Prisma, GraphQL, HTTP. | `application/` + `domain/` |
+
+---
+
+## Structure d'un module
+
+```
+src/modules/<contexte>/
+├── domain/
+│   ├── <entite>.entity.ts                  ← agrégat ou entité
+│   ├── value-objects/
+│   │   └── <nom>.vo.ts                     ← value object validé à la création
+│   ├── repositories/
+│   │   └── <nom>.repository.port.ts        ← interface (port) — pas d'implémentation ici
+│   └── errors/
+│       └── <nom>.error.ts                  ← erreurs métier (sans préfixe de contexte)
+├── application/
+│   └── <action>.use-case.ts                ← command + use-case dans le même fichier
+└── infrastructure/
+    ├── <module>.schema.gql                 ← schéma GraphQL (si 1 seul fichier graphql)
+    ├── graphql/                            ← dossier créé seulement si 2+ fichiers graphql
+    │   ├── <module>.schema.gql
+    │   └── <module>.resolver.ts
+    └── persistence/
+        └── prisma-<entite>.repository.ts   ← implémente le port avec Prisma
+```
+
+**Règle clé** : un dossier n'est créé que s'il contient au moins 2 fichiers. Un seul fichier va directement dans le dossier parent.
+
+---
+
+## Conventions de nommage
+
+### Suffixes de fichiers
+
+| Suffixe | Rôle | Exemple |
+|---|---|---|
+| `.entity.ts` | Entité ou agrégat | `user.entity.ts` |
+| `.vo.ts` | Value Object | `email.vo.ts` |
+| `.repository.port.ts` | Interface repository (port) | `user.repository.port.ts` |
+| `.use-case.ts` | Use-case + command | `create-user.use-case.ts` |
+| `.resolver.ts` | Adapter GraphQL | `register-agent.resolver.ts` |
+| `.schema.gql` | Schéma GraphQL | `iam.schema.gql` |
+| `.error.ts` | Erreur métier | `already-exists.error.ts` |
+
+### Règles de nommage
+
+- **Interfaces** : pas de préfixe `I`. `UserRepository` et non `IUserRepository`.
+- **Schémas GraphQL** : nommés d'après le **module**, pas l'entité. `iam.schema.gql` contiendra `User`, `Session`, `Token`… Si nommé `user.schema.gql`, il faudrait le renommer dès l'ajout d'une deuxième entité.
+- **Erreurs** : sans préfixe de contexte dans le nom de fichier — le dossier `errors/` situé dans `iam/domain/` donne déjà le contexte.
+- **Tout en kebab-case** pour les fichiers et dossiers. `agent-profile.entity.ts`, pas `agentProfile.entity.ts`.
+- **Dossiers au pluriel** : `value-objects/`, `repositories/`, `errors/`.
+
+---
+
+## Command et use-case dans le même fichier
+
+La command (type des données d'entrée) et le use-case vivent dans le même fichier. Pas de fichier `<action>.command.ts` séparé — un type de 3 lignes ne justifie pas un fichier dédié.
+
+```typescript
+// create-user.use-case.ts — command + use-case + result dans un seul fichier
+
+export type CreateUserCommand = {
+  email: string;
+  name?: string | null;
+};
+
+export type CreateUserResult = {
+  id: string;
+  email: string;
+  name: string | null;
+  createdAt: Date;
+};
+
+export class CreateUserUseCase {
+  constructor(private readonly userRepository: UserRepository) {}
+  async execute(command: CreateUserCommand): Promise<CreateUserResult> { ... }
+}
+```
+
+---
+
+## Ajouter un use-case : recette
+
+1. **Domain** — créer ou réutiliser l'entité et ses value objects
+2. **Port** — déclarer la méthode nécessaire dans `<nom>.repository.port.ts`
+3. **Use-case** — créer `<action>.use-case.ts` avec la command, le result type, et la classe
+4. **Repository** — implémenter la méthode dans `prisma-<nom>.repository.ts`
+5. **Schema** — ajouter le type/mutation/query dans `<module>.schema.gql`
+6. **Resolver** — câbler le use-case dans le bon resolver (voir section ci-dessous)
+
+---
+
+## Placement des resolvers
+
+### Resolver de module
+
+Un resolver vit dans `infrastructure/` du module **quand il expose une opération propre à ce module** (ex. `agentProfile(id: ID!)` pour `agent/`).
+
+```
+src/modules/agent/infrastructure/graphql/
+├── agent.schema.gql
+└── agent.resolver.ts    ← opérations propres au module agent
+```
+
+### Resolver cross-contexte
+
+Un resolver cross-contexte vit dans `src/infrastructure/graphql/` — même niveau que le use-case orchestrateur dans `src/application/`.
+
+```
+src/
+├── application/
+│   └── register-agent.use-case.ts       ← orchestration iam/ + agent/
+└── infrastructure/graphql/
+    └── register-agent.resolver.ts       ← adapter GraphQL de cette orchestration
+```
+
+**Règle** : si la mutation appelle un use-case dans `src/application/`, son resolver est dans `src/infrastructure/graphql/`. Si elle appelle un use-case dans `src/modules/<ctx>/application/`, son resolver est dans `src/modules/<ctx>/infrastructure/`.
+
+---
+
+## Les transactions cross-contextes
+
+### Problème
+
+Une mutation peut nécessiter de créer des entités dans **deux bounded contexts différents** (ex. `registerAgent` crée un `User` dans `iam/` et un `AgentProfile` dans `agent/`). Appeler deux use-cases séquentiellement sans transaction = risque d'état incohérent si le second échoue.
+
+### Solution : use-case orchestrateur à la racine
+
+```
+src/application/register-agent.use-case.ts   ← pur, zéro import Prisma/GraphQL
+src/infrastructure/graphql/register-agent.resolver.ts  ← gère la transaction
+```
+
+Le **resolver** crée la transaction et instancie les repositories qui y participent. Le use-case orchestrateur reste ignorant de Prisma.
+
+```typescript
+// register-agent.resolver.ts
+prisma.$transaction(async (tx: DbClient) => {
+  const useCase = new RegisterAgentUseCase(
+    new CreateUserUseCase(new PrismaUserRepository(tx)),
+    new CreateAgentProfileUseCase(new PrismaAgentProfileRepository(tx)),
+  );
+  return await useCase.execute(input);
+});
+```
+
+Si `CreateAgentProfileUseCase` échoue → rollback automatique → `User` non créé.
+
+### Règle de choix
+
+| Situation | Solution |
+|---|---|
+| 2 entités du même contexte | 1 use-case + transaction dans le resolver |
+| 2 entités de contextes différents | use-case orchestrateur à la racine + transaction dans le resolver |
+| Contextes découplés acceptant l'incohérence temporaire | Domain event + outbox pattern |
+
+---
+
+## Injection de dépendances
+
+Pas de container DI pour l'instant. Le câblage se fait dans le resolver (composition root).
+
+```typescript
+// Le seul endroit où les classes concrètes sont instanciées
+new RegisterAgentUseCase(
+  new CreateUserUseCase(new PrismaUserRepository(tx)),
+  new CreateAgentProfileUseCase(new PrismaAgentProfileRepository(tx)),
+);
+```
+
+Les use-cases ne connaissent que des interfaces. Tester un use-case = passer un repository en mémoire.
+
+---
+
+## Les repositories Prisma
+
+### Injection du client
+
+Les repositories acceptent un `DbClient` en constructeur — soit `prisma` (client normal), soit `tx` (client transactionnel).
+
+```typescript
+// src/infrastructure/prisma/client.ts — définition
+export type DbClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+// Dans un repository
+export class PrismaUserRepository implements UserRepository {
+  constructor(private readonly client: DbClient) {}
+}
+
+// Usage normal (sans transaction)
+new PrismaUserRepository(prisma)
+
+// Usage dans une transaction
+prisma.$transaction(async (tx) => {
+  new PrismaUserRepository(tx)
+})
+```
+
+### Règle : ne jamais importer depuis `generated/`
+
+`generated/` est un artefact de build — traite-le comme `node_modules`. `client.ts` est la **façade unique** pour tout ce qui vient de Prisma.
+
+```typescript
+// ✅ Correct
+import { prisma, Prisma, type DbClient } from "../../infrastructure/prisma/client";
+
+// ❌ Interdit
+import { Prisma } from "../../infrastructure/prisma/generated/client";
+```
+
+Si Prisma change son chemin de sortie, seul `client.ts` est à mettre à jour.
+
+### create vs reconstitute
+
+Chaque entité expose deux constructeurs statiques :
+
+| Méthode | Usage | Effets |
+|---|---|---|
+| `Entity.create(params)` | Nouvelle entité | Timestamps auto, peut émettre des domain events |
+| `Entity.reconstitute(props)` | Reconstruction depuis la DB | Aucun effet de bord |
+
+`Email.create(raw)` valide l'entrée utilisateur (regex, lowercase, trim). `Email.reconstitute(value)` bypass la validation — uniquement dans `toDomain()` d'un repository.
+
+---
+
+## Bounded contexts
+
+| Contexte | Chemin | État |
+|---|---|---|
+| `iam/` | `src/modules/iam/` | `User` — registerAgent |
+| `agent/` | `src/modules/agent/` | `AgentProfile` — registerAgent |
+
+**À venir** : `portefeuille/` · `transaction/` · `comptabilite/` · `academie/` · `commerce/` · `documents/` · `notifications/`

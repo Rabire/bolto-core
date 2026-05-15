@@ -1,3 +1,5 @@
+## DDD
+
 iam/
 
 User — identité, rôle, archivage
@@ -63,3 +65,17 @@ Deprecated — à ne pas porter dans Burton
 
 Lead, Comment, UserView, Subscriber, Renovation, Partner
 LessonType.ENERGY_RENOVATION, IncomeType.RENOVATION, IncomeType.UPGRADE
+
+## Archi hexa
+
+Requête GraphQL
+↓
+[Resolver] ← infrastructure/graphql (adapter IN)
+↓
+[CreateUserUseCase] ← application (orchestrateur)
+↓
+[User + Email] ← domain (logique pure)
+↑
+[PrismaUserRepository] ← infrastructure/persistence (adapter OUT)
+
+Les dépendances vont toujours vers le centre : resolver → use-case → port ← adapter Prisma

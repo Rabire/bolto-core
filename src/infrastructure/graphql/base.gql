@@ -1,12 +1,5 @@
-# TODO: delete this Book stuff.
-type Book {
-  id: ID!
-  title: String!
-}
-
 type Query {
-  # iam: IamQueries!
-  books: [Book!]!
+  _empty: String
 }
 
 type Mutation {
