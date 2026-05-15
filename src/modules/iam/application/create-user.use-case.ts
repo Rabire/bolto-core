@@ -3,23 +3,17 @@ import { User } from "@iam/domain/user/user.entity";
 import { Email } from "@shared/value-objects/email.vo";
 import type { UserRepository } from "@iam/domain/user/repositories/user.repository.port";
 import { UserAlreadyExistsError } from "@iam/domain/user/errors/user-already-exists.error";
+import type { UserDto } from "@iam/app/user.dto";
 
 export type CreateUserCommand = {
   email: string;
   name?: string | null;
 };
 
-export type CreateUserResult = {
-  id: string;
-  email: string;
-  name: string | null;
-  createdAt: Date;
-};
-
 export class CreateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(command: CreateUserCommand): Promise<CreateUserResult> {
+  async execute(command: CreateUserCommand): Promise<UserDto> {
     const email = Email.create(command.email);
 
     const existing = await this.userRepository.findByEmail(email);

@@ -111,7 +111,7 @@ const BOUNDARIES_RULES = [
 
 export default tseslint.config(
   // ── Fichiers ignorés ──────────────────────────────────────────────────────
-  { ignores: ["src/infrastructure/prisma/generated/**"] },
+  { ignores: ["src/infrastructure/prisma/generated/**", "src/infrastructure/graphql/types.generated.ts"] },
 
   // ── Presets + règles spécifiques au projet ────────────────────────────────
   {

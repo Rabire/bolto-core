@@ -1,2 +1,6 @@
 [loader]
 ".gql" = "text"
+
+[test]
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage"
