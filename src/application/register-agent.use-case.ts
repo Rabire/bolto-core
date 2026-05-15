@@ -1,5 +1,5 @@
-import type { CreateUserUseCase, CreateUserResult } from '@iam/app/create-user.use-case';
-import type { CreateAgentProfileUseCase } from '@agent/app/create-agent-profile.use-case';
+import type { CreateUserUseCase, CreateUserResult } from "@iam/app/create-user.use-case";
+import type { CreateAgentProfileUseCase } from "@agent/app/create-agent-profile.use-case";
 
 export type RegisterAgentCommand = {
   email: string;

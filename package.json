@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
@@ -21,9 +23,13 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/pg": "^8.20.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.3",
     "eslint": "^10.4.0",
-    "eslint-plugin-boundaries": "^6.0.2"
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-boundaries": "^6.0.2",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.3"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"

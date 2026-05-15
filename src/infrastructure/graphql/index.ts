@@ -18,7 +18,7 @@ const startApolloServer = async () => {
     listen: { port: 4000 },
   });
 
-  console.log(`Server ready at: ${url}`);
+  console.info(`Server ready at: ${url}`);
 };
 
 export default startApolloServer;

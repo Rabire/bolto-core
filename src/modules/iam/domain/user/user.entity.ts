@@ -13,11 +13,7 @@ type UserProps = {
 export class User {
   private constructor(private readonly props: UserProps) {}
 
-  static create(params: {
-    id: string;
-    email: Email;
-    name?: string | null;
-  }): User {
+  static create(params: { id: string; email: Email; name?: string | null }): User {
     const now = new Date();
     return new User({
       id: params.id,

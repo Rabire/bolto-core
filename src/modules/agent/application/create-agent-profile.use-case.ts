@@ -7,9 +7,7 @@ export type CreateAgentProfileCommand = {
 };
 
 export class CreateAgentProfileUseCase {
-  constructor(
-    private readonly agentProfileRepository: AgentProfileRepository,
-  ) {}
+  constructor(private readonly agentProfileRepository: AgentProfileRepository) {}
 
   async execute(command: CreateAgentProfileCommand): Promise<void> {
     const profile = AgentProfile.create({
