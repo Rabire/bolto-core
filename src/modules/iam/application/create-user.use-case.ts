@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
-import { User } from "../domain/user/user.entity";
-import { Email } from "../../../shared/value-objects/email.vo";
-import type { UserRepository } from "../domain/user/repositories/user.repository.port";
-import { UserAlreadyExistsError } from "../domain/user/errors/user-already-exists.error";
+import { User } from "@iam/domain/user/user.entity";
+import { Email } from "@shared/value-objects/email.vo";
+import type { UserRepository } from "@iam/domain/user/repositories/user.repository.port";
+import { UserAlreadyExistsError } from "@iam/domain/user/errors/user-already-exists.error";
 
 export type CreateUserCommand = {
   email: string;

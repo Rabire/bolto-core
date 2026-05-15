@@ -1,10 +1,10 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import baseTypeDefs from "./base.gql";
-import iamTypeDefs from "../../modules/iam/infrastructure/iam.schema.gql";
-import agentTypeDefs from "../../modules/agent/infrastructure/agent.schema.gql";
+import iamTypeDefs from "@iam/infra/iam.schema.gql";
+import agentTypeDefs from "@agent/infra/agent.schema.gql";
 import { registerAgentResolver } from "./register-agent.resolver";
-import { userResolver } from "../../modules/iam/infrastructure/user.resolver";
+import { userResolver } from "@iam/infra/user.resolver";
 import { formatError } from "./format-error";
 
 const server = new ApolloServer({

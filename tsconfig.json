@@ -24,6 +24,22 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+
+    // Path aliases — convention : @<module>/<layer>/*
+    // baseUrl omis (déprécié TypeScript 6) — les paths utilisent des chemins relatifs au tsconfig
+    "paths": {
+      "@shared/*":             ["./src/shared/*"],
+      "@infra/*":              ["./src/infrastructure/*"],
+      "@app/*":                ["./src/application/*"],
+
+      "@iam/domain/*":         ["./src/modules/iam/domain/*"],
+      "@iam/app/*":            ["./src/modules/iam/application/*"],
+      "@iam/infra/*":          ["./src/modules/iam/infrastructure/*"],
+
+      "@agent/domain/*":       ["./src/modules/agent/domain/*"],
+      "@agent/app/*":          ["./src/modules/agent/application/*"],
+      "@agent/infra/*":        ["./src/modules/agent/infrastructure/*"]
+    }
   }
 }

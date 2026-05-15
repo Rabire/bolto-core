@@ -1,5 +1,5 @@
-import type { UserRepository } from "../domain/user/repositories/user.repository.port";
-import { UserNotFoundError } from "../domain/user/errors/user-not-found.error";
+import type { UserRepository } from "@iam/domain/user/repositories/user.repository.port";
+import { UserNotFoundError } from "@iam/domain/user/errors/user-not-found.error";
 
 export type GetUserByIdResult = {
   id: string;

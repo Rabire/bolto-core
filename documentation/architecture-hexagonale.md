@@ -329,6 +329,78 @@ Chaque entité expose deux constructeurs statiques :
 
 ---
 
+## Alias de chemins & frontières architecturales
+
+### Alias TypeScript
+
+Les imports utilisent des alias absolus définis dans [tsconfig.json](../tsconfig.json). La convention est `@<module>/<layer>/*`, ce qui rend la couche visible directement dans l'import.
+
+| Alias | Pointe vers | Couche |
+|---|---|---|
+| `@shared/*` | `src/shared/*` | Shared kernel |
+| `@infra/*` | `src/infrastructure/*` | Infrastructure globale (Prisma, Apollo) |
+| `@app/*` | `src/application/*` | Use-cases cross-contextes |
+| `@iam/domain/*` | `src/modules/iam/domain/*` | Domaine `iam` |
+| `@iam/app/*` | `src/modules/iam/application/*` | Application `iam` |
+| `@iam/infra/*` | `src/modules/iam/infrastructure/*` | Infrastructure `iam` |
+| `@agent/domain/*` | `src/modules/agent/domain/*` | Domaine `agent` |
+| `@agent/app/*` | `src/modules/agent/application/*` | Application `agent` |
+| `@agent/infra/*` | `src/modules/agent/infrastructure/*` | Infrastructure `agent` |
+
+Exemple d'import dans un repository Prisma :
+
+```typescript
+// ❌ Avant — chemin relatif opaque, fragile
+import type { DbClient } from "../../../../infrastructure/prisma/client";
+import { User } from "../../domain/user/user.entity";
+
+// ✅ Après — couche lisible, stable
+import type { DbClient } from "@infra/prisma/client";
+import { User } from "@iam/domain/user/user.entity";
+```
+
+> **Note Bun** : Bun lit `tsconfig.json` nativement depuis Bun 1.0 — aucune config supplémentaire dans `bunfig.toml`.
+
+### Enforcement des frontières (ESLint)
+
+Les règles architecturales sont enforced à l'exécution via `eslint-plugin-boundaries` ([eslint.config.js](../eslint.config.js)).
+
+```bash
+bun run lint       # vérifier
+bun run lint:fix   # corriger auto ce qui peut l'être
+```
+
+Les violations sont des **erreurs** (pas des warnings) — le CI doit bloquer dessus.
+
+**Matrice des dépendances autorisées :**
+
+| Couche source | Peut importer depuis |
+|---|---|
+| `shared` | `shared` uniquement |
+| `module-domain` | `shared` · `module-domain` du même module |
+| `module-app` | `shared` · `module-domain` du même module · `module-app` du même module |
+| `module-infra` | `shared` · `global-infra` · les 3 couches du même module |
+| `cross-app` (orchestration) | `shared` · `module-app` de n'importe quel module |
+| `global-infra` (Apollo, Prisma) | tout — c'est le point d'assemblage |
+| `root` (`index.ts`) | `global-infra` · `cross-app` |
+
+La règle `{{from.moduleName}}` garantit l'isolation inter-modules sans config par-module. `@iam/app/` ne peut pas importer depuis `@agent/app/` — le module name diffère.
+
+### Ajouter un nouveau bounded context
+
+1. Créer le dossier `src/modules/<ctx>/` avec ses sous-couches `domain/`, `application/`, `infrastructure/`
+2. Ajouter **3 lignes** dans `tsconfig.json` :
+
+```json
+"@<ctx>/domain/*":  ["./src/modules/<ctx>/domain/*"],
+"@<ctx>/app/*":     ["./src/modules/<ctx>/application/*"],
+"@<ctx>/infra/*":   ["./src/modules/<ctx>/infrastructure/*"]
+```
+
+3. **Aucune modification d'`eslint.config.js`** — les patterns globulaires `src/modules/*/...` couvrent automatiquement le nouveau contexte.
+
+---
+
 ## Bounded contexts
 
 | Contexte | Chemin | État |

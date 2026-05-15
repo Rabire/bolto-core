@@ -1,9 +1,9 @@
-import { prisma, type DbClient } from "../prisma/client";
-import { RegisterAgentUseCase } from "../../application/register-agent.use-case";
-import { CreateUserUseCase } from "../../modules/iam/application/create-user.use-case";
-import { CreateAgentProfileUseCase } from "../../modules/agent/application/create-agent-profile.use-case";
-import { PrismaUserRepository } from "../../modules/iam/infrastructure/persistence/prisma-user.repository";
-import { PrismaAgentProfileRepository } from "../../modules/agent/infrastructure/persistence/prisma-agent-profile.repository";
+import { prisma, type DbClient } from "@infra/prisma/client";
+import { RegisterAgentUseCase } from "@app/register-agent.use-case";
+import { CreateUserUseCase } from "@iam/app/create-user.use-case";
+import { CreateAgentProfileUseCase } from "@agent/app/create-agent-profile.use-case";
+import { PrismaUserRepository } from "@iam/infra/persistence/prisma-user.repository";
+import { PrismaAgentProfileRepository } from "@agent/infra/persistence/prisma-agent-profile.repository";
 
 type RegisterAgentInput = { email: string; name?: string | null };
 

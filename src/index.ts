@@ -1,5 +1,5 @@
-import startApolloServer from "./infrastructure/graphql";
-import { prisma } from "./infrastructure/prisma/client";
+import startApolloServer from "@infra/graphql/index";
+import { prisma } from "@infra/prisma/client";
 
 async function main() {
   startApolloServer();

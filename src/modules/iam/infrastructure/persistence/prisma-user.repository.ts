@@ -1,7 +1,7 @@
-import type { DbClient } from "../../../../infrastructure/prisma/client";
-import type { UserRepository } from "../../domain/user/repositories/user.repository.port";
-import { User } from "../../domain/user/user.entity";
-import { Email } from "../../../../shared/value-objects/email.vo";
+import type { DbClient } from "@infra/prisma/client";
+import type { UserRepository } from "@iam/domain/user/repositories/user.repository.port";
+import { User } from "@iam/domain/user/user.entity";
+import { Email } from "@shared/value-objects/email.vo";
 
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly client: DbClient) {}

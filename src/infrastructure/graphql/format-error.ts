@@ -1,7 +1,7 @@
 import type { GraphQLFormattedError } from "graphql";
-import { UserNotFoundError } from "../../modules/iam/domain/user/errors/user-not-found.error";
-import { UserAlreadyExistsError } from "../../modules/iam/domain/user/errors/user-already-exists.error";
-import { InvalidEmailError } from "../../shared/value-objects/email.vo";
+import { UserNotFoundError } from "@iam/domain/user/errors/user-not-found.error";
+import { UserAlreadyExistsError } from "@iam/domain/user/errors/user-already-exists.error";
+import { InvalidEmailError } from "@shared/value-objects/email.vo";
 
 export function formatError(formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError {
   if (error instanceof UserNotFoundError)
