@@ -4,10 +4,11 @@ import baseTypeDefs from "./base.gql";
 import iamTypeDefs from "../../modules/iam/infrastructure/iam.schema.gql";
 import agentTypeDefs from "../../modules/agent/infrastructure/agent.schema.gql";
 import { registerAgentResolver } from "./register-agent.resolver";
+import { userResolver } from "../../modules/iam/infrastructure/user.resolver";
 
 const server = new ApolloServer({
   typeDefs: [baseTypeDefs, iamTypeDefs, agentTypeDefs],
-  resolvers: [registerAgentResolver],
+  resolvers: [registerAgentResolver, userResolver],
 });
 
 const startApolloServer = async () => {

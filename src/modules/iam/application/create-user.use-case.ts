@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
-import { User } from "../domain/user.entity";
-import { Email } from "../domain/value-objects/email.vo";
-import type { UserRepository } from "../domain/repositories/user.repository.port";
-import { UserAlreadyExistsError } from "../domain/errors/user-already-exists.error";
+import { User } from "../domain/user/user.entity";
+import { Email } from "../domain/user/value-objects/email.vo";
+import type { UserRepository } from "../domain/user/repositories/user.repository.port";
+import { UserAlreadyExistsError } from "../domain/user/errors/user-already-exists.error";
 
 export type CreateUserCommand = {
   email: string;
@@ -34,7 +34,7 @@ export class CreateUserUseCase {
     await this.userRepository.save(user);
 
     return {
-      id: user.id.toString(),
+      id: user.id,
       email: user.email.toString(),
       name: user.name,
       createdAt: user.createdAt,

@@ -1,10 +1,15 @@
 import type { DbClient } from "../../../../infrastructure/prisma/client";
-import type { UserRepository } from "../../domain/repositories/user.repository.port";
-import { User } from "../../domain/user.entity";
-import { Email } from "../../domain/value-objects/email.vo";
+import type { UserRepository } from "../../domain/user/repositories/user.repository.port";
+import { User } from "../../domain/user/user.entity";
+import { Email } from "../../domain/user/value-objects/email.vo";
 
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly client: DbClient) {}
+
+  async findById(id: string): Promise<User | null> {
+    const row = await this.client.user.findUnique({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
 
   async findByEmail(email: Email): Promise<User | null> {
     const row = await this.client.user.findUnique({

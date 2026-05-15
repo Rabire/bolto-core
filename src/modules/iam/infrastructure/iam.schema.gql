@@ -4,3 +4,8 @@ type User {
   name: String
   createdAt: String!
 }
+
+# FIXME: Pourquoi c'est ici ca ?
+extend type Query {
+  getUserById(id: ID!): User
+}

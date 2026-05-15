@@ -1,5 +1,7 @@
 import type { Email } from "./value-objects/email.vo";
 
+// Dans domain, je prefererais avoir un dossier /user qui contient un fichier Error, Repository, un dossier ValueObject
+
 type UserProps = {
   id: string;
   email: Email;
