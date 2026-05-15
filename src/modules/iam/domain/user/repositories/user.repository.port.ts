@@ -1,5 +1,5 @@
 import type { User } from "../user.entity";
-import type { Email } from "../value-objects/email.vo";
+import type { Email } from "../../../../../shared/value-objects/email.vo";
 
 export interface UserRepository {
   findById(id: string): Promise<User | null>;

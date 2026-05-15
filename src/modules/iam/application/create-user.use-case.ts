@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { User } from "../domain/user/user.entity";
-import { Email } from "../domain/user/value-objects/email.vo";
+import { Email } from "../../../shared/value-objects/email.vo";
 import type { UserRepository } from "../domain/user/repositories/user.repository.port";
 import { UserAlreadyExistsError } from "../domain/user/errors/user-already-exists.error";
 
