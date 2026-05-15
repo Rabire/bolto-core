@@ -1,5 +1,4 @@
 import { prisma, type DbClient } from "../prisma/client";
-import { handleResolverError } from "./handle-resolver-error";
 import { RegisterAgentUseCase } from "../../application/register-agent.use-case";
 import { CreateUserUseCase } from "../../modules/iam/application/create-user.use-case";
 import { CreateAgentProfileUseCase } from "../../modules/agent/application/create-agent-profile.use-case";
@@ -17,8 +16,7 @@ export const registerAgentResolver = {
           new CreateAgentProfileUseCase(new PrismaAgentProfileRepository(tx)),
         );
         return useCase.execute(input);
-      }).catch(handleResolverError);
-
+      });
       return { user: { ...result, createdAt: result.createdAt.toISOString() } };
     },
   },

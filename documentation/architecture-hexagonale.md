@@ -22,16 +22,19 @@ infrastructure → application → domain
 
 ## Structure d'un module
 
+Le domaine est organisé **par agrégat** — chaque agrégat a son propre sous-dossier qui regroupe l'entité, ses value objects, son port de repository et ses erreurs.
+
 ```
 src/modules/<contexte>/
 ├── domain/
-│   ├── <entite>.entity.ts                  ← agrégat ou entité
-│   ├── value-objects/
-│   │   └── <nom>.vo.ts                     ← value object validé à la création
-│   ├── repositories/
-│   │   └── <nom>.repository.port.ts        ← interface (port) — pas d'implémentation ici
-│   └── errors/
-│       └── <nom>.error.ts                  ← erreurs métier (sans préfixe de contexte)
+│   └── <entity>/                          ← un dossier par agrégat
+│       ├── <entity>.entity.ts
+│       ├── value-objects/
+│       │   └── <nom>.vo.ts
+│       ├── repositories/
+│       │   └── <entity>.repository.port.ts
+│       └── errors/
+│           └── <nom>.error.ts
 ├── application/
 │   └── <action>.use-case.ts                ← command + use-case dans le même fichier
 └── infrastructure/
@@ -40,7 +43,23 @@ src/modules/<contexte>/
     │   ├── <module>.schema.gql
     │   └── <module>.resolver.ts
     └── persistence/
-        └── prisma-<entite>.repository.ts   ← implémente le port avec Prisma
+        └── prisma-<entity>.repository.ts  ← implémente le port avec Prisma
+```
+
+Exemple réel — module `iam/` avec deux agrégats futurs :
+
+```
+iam/domain/
+├── user/
+│   ├── user.entity.ts
+│   ├── value-objects/email.vo.ts
+│   ├── repositories/user.repository.port.ts
+│   └── errors/
+│       ├── user-not-found.error.ts
+│       └── user-already-exists.error.ts
+└── session/                                ← futur agrégat Session
+    ├── session.entity.ts
+    └── repositories/session.repository.port.ts
 ```
 
 **Règle clé** : un dossier n'est créé que s'il contient au moins 2 fichiers. Un seul fichier va directement dans le dossier parent.
@@ -172,6 +191,74 @@ Si `CreateAgentProfileUseCase` échoue → rollback automatique → `User` non c
 | 2 entités du même contexte | 1 use-case + transaction dans le resolver |
 | 2 entités de contextes différents | use-case orchestrateur à la racine + transaction dans le resolver |
 | Contextes découplés acceptant l'incohérence temporaire | Domain event + outbox pattern |
+
+---
+
+## Gestion des erreurs
+
+### Principe
+
+Les erreurs métier sont des classes du domaine — elles ne connaissent ni GraphQL ni HTTP. La conversion vers le format GraphQL se fait en un seul endroit : `src/infrastructure/graphql/format-error.ts`, branché sur le hook `formatError` d'Apollo Server.
+
+```
+domain        → throw UserNotFoundError(id)          ← erreur métier pure
+    ↓
+Apollo Server → intercepte, appelle formatError(formattedError, originalError)
+    ↓
+format-error  → instanceof check → { message, extensions: { code } }
+    ↓
+client        → reçoit un message lisible + un code d'erreur structuré
+```
+
+### Erreurs domaine
+
+Chaque erreur métier est une classe dans `domain/<entity>/errors/`. Elle étend `Error` et fixe `this.name` pour l'identification à l'exécution.
+
+```typescript
+// user-not-found.error.ts
+export class UserNotFoundError extends Error {
+  constructor(id: string) {
+    super(`Aucun utilisateur trouvé avec l'id "${id}"`);
+    this.name = 'UserNotFoundError';
+  }
+}
+```
+
+### Enregistrement dans formatError
+
+```typescript
+// src/infrastructure/graphql/format-error.ts
+export function formatError(formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError {
+  if (error instanceof UserNotFoundError)
+    return { message: error.message, extensions: { code: "NOT_FOUND" } };
+  if (error instanceof UserAlreadyExistsError)
+    return { message: error.message, extensions: { code: "USER_ALREADY_EXISTS" } };
+  // ...
+  return formattedError; // erreur inattendue → Apollo la masque en "Internal server error"
+}
+```
+
+Apollo passe l'erreur **originale** (avant tout masquage) en second paramètre — les `instanceof` fonctionnent toujours.
+
+### Ce que ça implique pour les resolvers
+
+Les resolvers ne contiennent **aucune gestion d'erreur**. Ils laissent les erreurs domaine remonter naturellement.
+
+```typescript
+// ✅ Resolver sans try/catch — les erreurs remontent vers formatError
+getUserById: async (_: unknown, { id }: { id: string }) => {
+  const result = await useCase.execute(id);
+  return { ...result, createdAt: result.createdAt.toISOString() };
+},
+```
+
+### Ajouter une erreur dans un nouveau module
+
+1. Créer la classe dans `domain/<entity>/errors/<nom>.error.ts`
+2. L'importer dans `src/infrastructure/graphql/format-error.ts`
+3. Ajouter le `instanceof` avec le code GraphQL approprié
+
+Les resolvers n'ont pas à être modifiés.
 
 ---
 

@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { AgentProfile } from "../domain/agent-profile.entity";
-import type { AgentProfileRepository } from "../domain/repositories/agent-profile.repository.port";
+import { AgentProfile } from "../domain/agent-profile/agent-profile.entity";
+import type { AgentProfileRepository } from "../domain/agent-profile/repositories/agent-profile.repository.port";
 
 export type CreateAgentProfileCommand = {
   userId: string;

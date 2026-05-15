@@ -1,6 +1,6 @@
 import type { DbClient } from "../../../../infrastructure/prisma/client";
-import type { AgentProfileRepository } from "../../domain/repositories/agent-profile.repository.port";
-import { AgentProfile } from "../../domain/agent-profile.entity";
+import type { AgentProfileRepository } from "../../domain/agent-profile/repositories/agent-profile.repository.port";
+import { AgentProfile } from "../../domain/agent-profile/agent-profile.entity";
 
 export class PrismaAgentProfileRepository implements AgentProfileRepository {
   constructor(private readonly client: DbClient) {}
