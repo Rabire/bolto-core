@@ -12,11 +12,11 @@ infrastructure → application → domain
 
 ## Les 3 couches
 
-| Couche | Rôle | Peut importer |
-|---|---|---|
-| `domain/` | Règles métier pures. Entités, value objects, ports. | Rien (TypeScript vanilla uniquement) |
-| `application/` | Orchestration. Use-cases. | `domain/` uniquement |
-| `infrastructure/` | Technologie. Prisma, GraphQL, HTTP. | `application/` + `domain/` |
+| Couche            | Rôle                                                | Peut importer                        |
+| ----------------- | --------------------------------------------------- | ------------------------------------ |
+| `domain/`         | Règles métier pures. Entités, value objects, ports. | Rien (TypeScript vanilla uniquement) |
+| `application/`    | Orchestration. Use-cases.                           | `domain/` uniquement                 |
+| `infrastructure/` | Technologie. Prisma, GraphQL, HTTP.                 | `application/` + `domain/`           |
 
 ---
 
@@ -70,15 +70,15 @@ iam/domain/
 
 ### Suffixes de fichiers
 
-| Suffixe | Rôle | Exemple |
-|---|---|---|
-| `.entity.ts` | Entité ou agrégat | `user.entity.ts` |
-| `.vo.ts` | Value Object | `email.vo.ts` |
-| `.repository.port.ts` | Interface repository (port) | `user.repository.port.ts` |
-| `.use-case.ts` | Use-case + command | `create-user.use-case.ts` |
-| `.resolver.ts` | Adapter GraphQL | `register-agent.resolver.ts` |
-| `.schema.gql` | Schéma GraphQL | `iam.schema.gql` |
-| `.error.ts` | Erreur métier | `already-exists.error.ts` |
+| Suffixe               | Rôle                        | Exemple                      |
+| --------------------- | --------------------------- | ---------------------------- |
+| `.entity.ts`          | Entité ou agrégat           | `user.entity.ts`             |
+| `.vo.ts`              | Value Object                | `email.vo.ts`                |
+| `.repository.port.ts` | Interface repository (port) | `user.repository.port.ts`    |
+| `.use-case.ts`        | Use-case + command          | `create-user.use-case.ts`    |
+| `.resolver.ts`        | Adapter GraphQL             | `register-agent.resolver.ts` |
+| `.schema.gql`         | Schéma GraphQL              | `iam.schema.gql`             |
+| `.error.ts`           | Erreur métier               | `already-exists.error.ts`    |
 
 ### Règles de nommage
 
@@ -186,11 +186,11 @@ Si `CreateAgentProfileUseCase` échoue → rollback automatique → `User` non c
 
 ### Règle de choix
 
-| Situation | Solution |
-|---|---|
-| 2 entités du même contexte | 1 use-case + transaction dans le resolver |
-| 2 entités de contextes différents | use-case orchestrateur à la racine + transaction dans le resolver |
-| Contextes découplés acceptant l'incohérence temporaire | Domain event + outbox pattern |
+| Situation                                              | Solution                                                          |
+| ------------------------------------------------------ | ----------------------------------------------------------------- |
+| 2 entités du même contexte                             | 1 use-case + transaction dans le resolver                         |
+| 2 entités de contextes différents                      | use-case orchestrateur à la racine + transaction dans le resolver |
+| Contextes découplés acceptant l'incohérence temporaire | Domain event + outbox pattern                                     |
 
 ---
 
@@ -219,7 +219,7 @@ Chaque erreur métier est une classe dans `domain/<entity>/errors/`. Elle étend
 export class UserNotFoundError extends Error {
   constructor(id: string) {
     super(`Aucun utilisateur trouvé avec l'id "${id}"`);
-    this.name = 'UserNotFoundError';
+    this.name = "UserNotFoundError";
   }
 }
 ```
@@ -228,7 +228,10 @@ export class UserNotFoundError extends Error {
 
 ```typescript
 // src/infrastructure/graphql/format-error.ts
-export function formatError(formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError {
+export function formatError(
+  formattedError: GraphQLFormattedError,
+  error: unknown,
+): GraphQLFormattedError {
   if (error instanceof UserNotFoundError)
     return { message: error.message, extensions: { code: "NOT_FOUND" } };
   if (error instanceof UserAlreadyExistsError)
@@ -294,12 +297,12 @@ export class PrismaUserRepository implements UserRepository {
 }
 
 // Usage normal (sans transaction)
-new PrismaUserRepository(prisma)
+new PrismaUserRepository(prisma);
 
 // Usage dans une transaction
 prisma.$transaction(async (tx) => {
-  new PrismaUserRepository(tx)
-})
+  new PrismaUserRepository(tx);
+});
 ```
 
 ### Règle : ne jamais importer depuis `generated/`
@@ -320,10 +323,10 @@ Si Prisma change son chemin de sortie, seul `client.ts` est à mettre à jour.
 
 Chaque entité expose deux constructeurs statiques :
 
-| Méthode | Usage | Effets |
-|---|---|---|
-| `Entity.create(params)` | Nouvelle entité | Timestamps auto, peut émettre des domain events |
-| `Entity.reconstitute(props)` | Reconstruction depuis la DB | Aucun effet de bord |
+| Méthode                      | Usage                       | Effets                                          |
+| ---------------------------- | --------------------------- | ----------------------------------------------- |
+| `Entity.create(params)`      | Nouvelle entité             | Timestamps auto, peut émettre des domain events |
+| `Entity.reconstitute(props)` | Reconstruction depuis la DB | Aucun effet de bord                             |
 
 `Email.create(raw)` valide l'entrée utilisateur (regex, lowercase, trim). `Email.reconstitute(value)` bypass la validation — uniquement dans `toDomain()` d'un repository.
 
@@ -335,17 +338,17 @@ Chaque entité expose deux constructeurs statiques :
 
 Les imports utilisent des alias absolus définis dans [tsconfig.json](../tsconfig.json). La convention est `@<module>/<layer>/*`, ce qui rend la couche visible directement dans l'import.
 
-| Alias | Pointe vers | Couche |
-|---|---|---|
-| `@shared/*` | `src/shared/*` | Shared kernel |
-| `@infra/*` | `src/infrastructure/*` | Infrastructure globale (Prisma, Apollo) |
-| `@app/*` | `src/application/*` | Use-cases cross-contextes |
-| `@iam/domain/*` | `src/modules/iam/domain/*` | Domaine `iam` |
-| `@iam/app/*` | `src/modules/iam/application/*` | Application `iam` |
-| `@iam/infra/*` | `src/modules/iam/infrastructure/*` | Infrastructure `iam` |
-| `@agent/domain/*` | `src/modules/agent/domain/*` | Domaine `agent` |
-| `@agent/app/*` | `src/modules/agent/application/*` | Application `agent` |
-| `@agent/infra/*` | `src/modules/agent/infrastructure/*` | Infrastructure `agent` |
+| Alias             | Pointe vers                          | Couche                                  |
+| ----------------- | ------------------------------------ | --------------------------------------- |
+| `@shared/*`       | `src/shared/*`                       | Shared kernel                           |
+| `@infra/*`        | `src/infrastructure/*`               | Infrastructure globale (Prisma, Apollo) |
+| `@app/*`          | `src/application/*`                  | Use-cases cross-contextes               |
+| `@iam/domain/*`   | `src/modules/iam/domain/*`           | Domaine `iam`                           |
+| `@iam/app/*`      | `src/modules/iam/application/*`      | Application `iam`                       |
+| `@iam/infra/*`    | `src/modules/iam/infrastructure/*`   | Infrastructure `iam`                    |
+| `@agent/domain/*` | `src/modules/agent/domain/*`         | Domaine `agent`                         |
+| `@agent/app/*`    | `src/modules/agent/application/*`    | Application `agent`                     |
+| `@agent/infra/*`  | `src/modules/agent/infrastructure/*` | Infrastructure `agent`                  |
 
 Exemple d'import dans un repository Prisma :
 
@@ -374,15 +377,15 @@ Les violations sont des **erreurs** (pas des warnings) — le CI doit bloquer de
 
 **Matrice des dépendances autorisées :**
 
-| Couche source | Peut importer depuis |
-|---|---|
-| `shared` | `shared` uniquement |
-| `module-domain` | `shared` · `module-domain` du même module |
-| `module-app` | `shared` · `module-domain` du même module · `module-app` du même module |
-| `module-infra` | `shared` · `global-infra` · les 3 couches du même module |
-| `cross-app` (orchestration) | `shared` · `module-app` de n'importe quel module |
-| `global-infra` (Apollo, Prisma) | tout — c'est le point d'assemblage |
-| `root` (`index.ts`) | `global-infra` · `cross-app` |
+| Couche source                   | Peut importer depuis                                                    |
+| ------------------------------- | ----------------------------------------------------------------------- |
+| `shared`                        | `shared` uniquement                                                     |
+| `module-domain`                 | `shared` · `module-domain` du même module                               |
+| `module-app`                    | `shared` · `module-domain` du même module · `module-app` du même module |
+| `module-infra`                  | `shared` · `global-infra` · les 3 couches du même module                |
+| `cross-app` (orchestration)     | `shared` · `module-app` de n'importe quel module                        |
+| `global-infra` (Apollo, Prisma) | tout — c'est le point d'assemblage                                      |
+| `root` (`index.ts`)             | `global-infra` · `cross-app`                                            |
 
 La règle `{{from.moduleName}}` garantit l'isolation inter-modules sans config par-module. `@iam/app/` ne peut pas importer depuis `@agent/app/` — le module name diffère.
 
@@ -403,9 +406,33 @@ La règle `{{from.moduleName}}` garantit l'isolation inter-modules sans config p
 
 ## Bounded contexts
 
-| Contexte | Chemin | État |
-|---|---|---|
-| `iam/` | `src/modules/iam/` | `User` — registerAgent |
+| Contexte | Chemin               | État                           |
+| -------- | -------------------- | ------------------------------ |
+| `iam/`   | `src/modules/iam/`   | `User` — registerAgent         |
 | `agent/` | `src/modules/agent/` | `AgentProfile` — registerAgent |
 
 **À venir** : `portefeuille/` · `transaction/` · `comptabilite/` · `academie/` · `commerce/` · `documents/` · `notifications/`
+
+---
+
+## Architecture grpahql
+
+```
+src/infrastructure/graphql/
+  mutations/
+    register-agent/
+      register-agent.schema.gql
+      register-agent.resolver.ts
+  queries/
+    get-user-by-id/
+      get-user-by-id.schema.gql
+      get-user-by-id.resolver.ts
+  types/
+    user/
+      user.type.gql
+      user.resolver.ts       ← field resolvers (createdAt, etc.)
+  base.gql
+  types.generated.ts
+  format-error.ts
+  index.ts
+```

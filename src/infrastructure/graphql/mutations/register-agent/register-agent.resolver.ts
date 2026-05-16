@@ -14,8 +14,10 @@ export const registerAgentResolver: Resolvers = {
           new CreateUserUseCase(new PrismaUserRepository(tx)),
           new CreateAgentProfileUseCase(new PrismaAgentProfileRepository(tx)),
         );
+
         return useCase.execute(input);
       });
+
       return { user: result };
     },
   },

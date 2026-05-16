@@ -1,0 +1,8 @@
+input RegisterAgentInput {
+  email: String!
+  name: String
+}
+
+extend type Mutation {
+  registerAgent(input: RegisterAgentInput!): User!
+}
