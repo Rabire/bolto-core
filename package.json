@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "format": "prettier --write src",
+    "format": "prettier --write --log-level warn src",
     "format:check": "prettier --check src",
     "prepare": "husky",
     "db:push": "prisma db push",
