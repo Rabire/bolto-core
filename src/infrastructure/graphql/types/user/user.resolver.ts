@@ -1,7 +1,10 @@
-import type { Resolvers } from "@infra/graphql/types.generated";
+import { defineResolver } from "@infra/graphql/define-resolver";
 
-export const userTypeResolver: Resolvers = {
+export const userTypeResolver = defineResolver({
   User: {
-    createdAt: (user) => user.createdAt.toISOString(),
+    id: (user) => user.id,
+    email: (user) => user.email,
+    name: (user) => user.name,
+    createdAt: (user) => user.createdAt,
   },
-};
+});

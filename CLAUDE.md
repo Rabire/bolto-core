@@ -52,3 +52,15 @@ La documentation complète est dans `documentation/architecture-hexagonale.md`. 
 - `domain/` : zéro import externe, TypeScript vanilla uniquement
 - `application/` : importe uniquement depuis `domain/`
 - `infrastructure/` : seule couche qui connaît Prisma, GraphQL, Bun
+
+**Resolvers GraphQL — règles impératives**
+- Toujours utiliser `defineResolver()` (`src/infrastructure/graphql/define-resolver.ts`) pour déclarer un resolver — jamais typer directement avec `Resolvers`
+- `defineResolver` force TypeScript à vérifier que **tous les champs** du type GraphQL sont explicitement résolus ; un champ oublié est une erreur de compilation, pas une erreur runtime
+- Ne pas s'appuyer sur le default resolver d'Apollo (`parent[fieldName]`) — toujours mapper explicitement chaque champ depuis le DTO correspondant
+- Le DTO parent est défini via `mappers` dans `codegen.ts` (ex. `User → UserDto`) ; après tout changement de schéma, relancer `bun run codegen`
+- `createdAt` est un `Date` dans les DTOs et doit être converti en `string` avec `.toISOString()` dans le resolver (le schéma expose `String!`, pas le scalar `Date`)
+
+**Commentaires**
+- Par défaut : aucun commentaire
+- Commenter uniquement quand le **pourquoi** est non-évident (contrainte cachée, invariant subtil, contournement)
+- Ne jamais paraphraser ce que le nom de la fonction ou les types expriment déjà

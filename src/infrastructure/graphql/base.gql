@@ -18,3 +18,5 @@ type PageInfo {
   page: Int!
   perPage: Int!
 }
+
+scalar Date
