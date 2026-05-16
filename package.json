@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "generate": "graphql-codegen --config codegen.ts",
+    "dev": "bash scripts/dev.sh",
+    "codegen": "graphql-codegen --config codegen.ts",
     "test": "bun test",
     "knip": "knip-bun",
     "knip:fix": "knip-bun --fix",
@@ -14,7 +14,12 @@
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "prisma:generate": "prisma generate",
+    "generate": "bun run codegen && npm run prisma:generate && npm run db:push"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",

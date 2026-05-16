@@ -18,7 +18,7 @@ export const registerAgentResolver: Resolvers = {
         return useCase.execute(input);
       });
 
-      return { user: result };
+      return result;
     },
   },
 };

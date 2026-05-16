@@ -2,7 +2,6 @@ import type { GraphQLResolveInfo } from 'graphql';
 import type { UserDto } from '@iam/app/user.dto';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -16,7 +15,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  registerAgent: RegisterAgentPayload;
+  registerAgent: User;
 };
 
 
@@ -52,11 +51,6 @@ export type QueryGetUserByIdArgs = {
 export type RegisterAgentInput = {
   email: Scalars['String']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type RegisterAgentPayload = {
-  __typename?: 'RegisterAgentPayload';
-  user: User;
 };
 
 export type User = {
@@ -148,7 +142,6 @@ export type ResolversTypes = {
   PaginationInput: PaginationInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   RegisterAgentInput: RegisterAgentInput;
-  RegisterAgentPayload: ResolverTypeWrapper<Omit<RegisterAgentPayload, 'user'> & { user: ResolversTypes['User'] }>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   User: ResolverTypeWrapper<UserDto>;
 };
@@ -163,14 +156,13 @@ export type ResolversParentTypes = {
   PaginationInput: PaginationInput;
   Query: Record<PropertyKey, never>;
   RegisterAgentInput: RegisterAgentInput;
-  RegisterAgentPayload: Omit<RegisterAgentPayload, 'user'> & { user: ResolversParentTypes['User'] };
   String: Scalars['String']['output'];
   User: UserDto;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  registerAgent?: Resolver<ResolversTypes['RegisterAgentPayload'], ParentType, ContextType, RequireFields<MutationRegisterAgentArgs, 'input'>>;
+  registerAgent?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationRegisterAgentArgs, 'input'>>;
 };
 
 export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
@@ -186,10 +178,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getUserById?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryGetUserByIdArgs, 'id'>>;
 };
 
-export type RegisterAgentPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegisterAgentPayload'] = ResolversParentTypes['RegisterAgentPayload']> = {
-  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-};
-
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -201,7 +189,6 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  RegisterAgentPayload?: RegisterAgentPayloadResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
 };
 
