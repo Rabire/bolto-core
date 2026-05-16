@@ -1,4 +1,5 @@
 import { ApolloServer } from "@apollo/server";
+import type { BaseContext } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import baseTypeDefs from "./base.gql";
 import iamTypeDefs from "@iam/infra/iam.schema.gql";
@@ -7,7 +8,7 @@ import { registerAgentResolver } from "./register-agent.resolver";
 import { userResolver } from "@iam/infra/user.resolver";
 import { formatError } from "./format-error";
 
-const server = new ApolloServer({
+const server = new ApolloServer<BaseContext>({
   typeDefs: [baseTypeDefs, iamTypeDefs, agentTypeDefs],
   resolvers: [registerAgentResolver, userResolver],
   formatError,

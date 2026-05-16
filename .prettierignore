@@ -1,2 +1,3 @@
 src/infrastructure/prisma/generated/
+src/infrastructure/graphql/types.generated.ts
 bun.lock

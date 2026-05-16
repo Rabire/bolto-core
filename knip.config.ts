@@ -3,6 +3,7 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   // entry et prisma.config.ts sont auto-détectés via package.json et le plugin Prisma
   project: ["src/**/*.ts"],
+  ignore: ["src/infrastructure/graphql/types.generated.ts"],
 
   ignoreDependencies: [
     // @prisma/client est importé depuis le client généré local (./generated/client), pas directement

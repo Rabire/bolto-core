@@ -10,4 +10,4 @@ const adapter = new PrismaPg({ connectionString });
 
 export const prisma = new PrismaClient({ adapter });
 
-export type DbClient =Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+export type DbClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
