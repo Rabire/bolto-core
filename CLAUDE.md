@@ -54,6 +54,7 @@ La documentation complète est dans `documentation/architecture-hexagonale.md`. 
 - `infrastructure/` : seule couche qui connaît Prisma, GraphQL, Bun
 
 **Resolvers GraphQL — règles impératives**
+- Chaque fichier `.resolver.ts` doit exporter son resolver sous le nom exact `resolver` (`export const resolver = defineResolver(...)`) — `index.ts` découvre automatiquement tous les `.resolver.ts` via `Bun.Glob` et extrait `{ resolver }` ; un export mal nommé donne `undefined` sans erreur
 - Toujours utiliser `defineResolver()` (`src/infrastructure/graphql/define-resolver.ts`) pour déclarer un resolver — jamais typer directement avec `Resolvers`
 - `defineResolver` force TypeScript à vérifier que **tous les champs** du type GraphQL sont explicitement résolus ; un champ oublié est une erreur de compilation, pas une erreur runtime
 - Ne pas s'appuyer sur le default resolver d'Apollo (`parent[fieldName]`) — toujours mapper explicitement chaque champ depuis le DTO correspondant

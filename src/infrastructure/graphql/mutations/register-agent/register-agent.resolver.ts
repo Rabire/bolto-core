@@ -6,7 +6,7 @@ import { CreateAgentProfileUseCase } from "@agent/app/create-agent-profile.use-c
 import { PrismaUserRepository } from "@iam/infra/persistence/prisma-user.repository";
 import { PrismaAgentProfileRepository } from "@agent/infra/persistence/prisma-agent-profile.repository";
 
-export const registerAgentResolver: Resolvers = {
+export const resolver: Resolvers = {
   Mutation: {
     registerAgent: async (_, { input }) => {
       const result = await prisma.$transaction(async (tx: DbClient) => {

@@ -2,6 +2,8 @@ import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
   // entry et prisma.config.ts sont auto-détectés via package.json et le plugin Prisma
+  // Les *.resolver.ts sont chargés dynamiquement via Bun.Glob — knip ne peut pas les suivre statiquement
+  entry: ["src/**/*.resolver.ts"],
   project: ["src/**/*.ts"],
   ignore: ["src/infrastructure/graphql/types.generated.ts"],
 

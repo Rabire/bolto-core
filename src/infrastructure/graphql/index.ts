@@ -1,18 +1,28 @@
 import { ApolloServer } from "@apollo/server";
 import type { BaseContext } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
+import type { Resolvers } from "@infra/graphql/types.generated";
 import baseTypeDefs from "./base.gql";
-import userTypeDefs from "./types/user/user.type.gql";
-import getUserByIdTypeDefs from "./queries/get-user-by-id/get-user-by-id.schema.gql";
-import registerAgentTypeDefs from "./mutations/register-agent/register-agent.schema.gql";
-import { userTypeResolver } from "./types/user/user.resolver";
-import { getUserByIdResolver } from "./queries/get-user-by-id/get-user-by-id.resolver";
-import { registerAgentResolver } from "./mutations/register-agent/register-agent.resolver";
 import { formatError } from "./format-error";
 
+// Tous les *.gql (sauf base.gql qui définit les types racine et doit passer en premier)
+const schemaDefs: string[] = [];
+for await (const file of new Bun.Glob("**/*.gql").scan(import.meta.dir)) {
+  if (file !== "base.gql") {
+    schemaDefs.push(await Bun.file(`${import.meta.dir}/${file}`).text());
+  }
+}
+
+// Tous les *.resolver.ts — chaque fichier doit exporter `export const resolver = ...`
+const allResolvers: Resolvers[] = [];
+for await (const file of new Bun.Glob("**/*.resolver.ts").scan(import.meta.dir)) {
+  const { resolver } = (await import(`${import.meta.dir}/${file}`)) as { resolver: Resolvers };
+  allResolvers.push(resolver);
+}
+
 const server = new ApolloServer<BaseContext>({
-  typeDefs: [baseTypeDefs, userTypeDefs, getUserByIdTypeDefs, registerAgentTypeDefs],
-  resolvers: [userTypeResolver, getUserByIdResolver, registerAgentResolver],
+  typeDefs: [baseTypeDefs, ...schemaDefs],
+  resolvers: allResolvers,
   formatError,
 });
 
