@@ -10,7 +10,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  Date: { input: unknown; output: unknown; }
+  Date: { input: Date; output: Date; }
 };
 
 export type Mutation = {

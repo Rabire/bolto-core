@@ -6,6 +6,8 @@ type Mutation {
   _empty: String
 }
 
+scalar Date
+
 input PaginationInput {
   page: Int = 1
   perPage: Int = 20
@@ -19,4 +21,3 @@ type PageInfo {
   perPage: Int!
 }
 
-scalar Date
