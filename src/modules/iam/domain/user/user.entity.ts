@@ -31,15 +31,19 @@ export class User {
   get id(): string {
     return this.props.id;
   }
+
   get email(): Email {
     return this.props.email;
   }
+
   get name(): string | null {
     return this.props.name;
   }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
+
   get updatedAt(): Date {
     return this.props.updatedAt;
   }

@@ -9,6 +9,7 @@
     "test": "bun test",
     "knip": "knip-bun",
     "knip:fix": "knip-bun --fix",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
